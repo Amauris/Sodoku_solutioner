@@ -109,6 +109,10 @@ func (inst *Sodoku) GetRow(i int) []int {
 	return inst.Table[i]
 }
 
+func (inst *Sodoku) SetEntry(i, j, value int) {
+	inst.Table[i][j] = value
+}
+
 func (inst *Sodoku) GetColumn(j int) []int {
 
 	row := make([]int, inst.dimensions)

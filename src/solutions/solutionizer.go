@@ -26,7 +26,7 @@ func GetSodokuAnswer(table *sodoku.Sodoku) {
 	//InsertBestOption(mostDensedFamily)
 
 	//InsertFamilyToTable(table, mostDensedFamily)
-	fmt.Println(table.GetFamilies(1, 1))
+	//fmt.Println(table.GetFamilies(1, 1))
 }
 
 func (inst *Solutionizer) Traverse() {
@@ -87,7 +87,7 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 	for max > 0 {
 		//fmt.Printf("values are %v %v %v \n", availableNumbers, max, inst.isNumberTaken(availableNumbers, max))
 		if(!inst.isNumberTaken(availableNumbers, max)) {
-			possibilities = append(possibilities, max+1)
+			possibilities = append(possibilities, max)
 		}
 
 		max -= 1
@@ -103,8 +103,8 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(table *sodoku.Sodoku) {
 
 	min := -1
-	minFamily := [][]int{}
-
+	//minFamily := [][]int{}
+	fmt.Println(table.Table)
 	for i, row := range(table.Table) {
 
 		for j, _ := range(row) {
@@ -123,16 +123,19 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(table *sodoku.Sodoku)
 			if(length<=0) {
 				continue
 			} else if(length==1) {
-				fmt.Println(families)
+				//fmt.Println(families)
+				//fmt.Println(numAvailable)
+				table.SetEntry(i, j, numAvailable[0])
 				///insert available number
 			} else if(min==-1 || len(numAvailable)<=min) {
 				min = len(numAvailable)
-				minFamily = families
+				//minFamily = families
 			}
 		}
 	}
 
-	fmt.Printf("%v %v\n", min, minFamily)
+	//fmt.Printf("%v %v\n", min, minFamily)
+	fmt.Println(table.Table)
 }
 
 func (inst *Solutionizer) InsertFamilyToTable() {
