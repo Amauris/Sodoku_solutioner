@@ -18,14 +18,20 @@ type family struct {
 
 //main entry function that calls the right
 //functions for gettnig sodoku answer
-func GetSodokuAnswer(table *sodoku.Sodoku) {
+func GetSodokuAnswer(board *sodoku.Board) {
 
 	solutionizer := &Solutionizer{}
-	solutionizer.GetIndexWithLeastPossibleChoices(table)
 	
+	try := 0
+	//fmt.Println(board.Entries)
+	for try<10 {
+		solutionizer.GetIndexWithLeastPossibleChoices(board)
+		try += 1
+	}
+	//fmt.Println(board.Entries)
 	//InsertBestOption(mostDensedFamily)
 
-	//InsertFamilyToTable(table, mostDensedFamily)
+	solutionizer.OutputAnswer(board)
 	//fmt.Println(table.GetFamilies(1, 1))
 }
 
@@ -100,16 +106,22 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 //free options to choose from. For example 
 //if a particular row only has one blank
 //index then we know the number that goes in that index
-func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(table *sodoku.Sodoku) {
+func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) {
 
 	min := -1
 	//minFamily := [][]int{}
-	fmt.Println(table.Table)
-	for i, row := range(table.Table) {
 
-		for j, _ := range(row) {
+	for i, row := range(board.Entries) {
 
-			families := table.GetFamilies(i, j)
+		for j, v := range(row) {
+
+			//if we dont have an empty entry then we continue since this
+			//entry is already filled
+			if(v!=0) {
+				continue
+			}
+
+			families := board.GetFamilies(i, j)
 			availableNumbers := 987654321
 
 			for _, family := range(families) {
@@ -123,9 +135,9 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(table *sodoku.Sodoku)
 			if(length<=0) {
 				continue
 			} else if(length==1) {
-				//fmt.Println(families)
-				//fmt.Println(numAvailable)
-				table.SetEntry(i, j, numAvailable[0])
+				fmt.Println(families)
+				fmt.Println(numAvailable)
+				board.SetEntry(i, j, numAvailable[0])
 				///insert available number
 			} else if(min==-1 || len(numAvailable)<=min) {
 				min = len(numAvailable)
@@ -135,17 +147,19 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(table *sodoku.Sodoku)
 	}
 
 	//fmt.Printf("%v %v\n", min, minFamily)
-	fmt.Println(table.Table)
+	//fmt.Println(board.Entries)
 }
 
-func (inst *Solutionizer) InsertFamilyToTable() {
-
-}
-
-func (inst *Solutionizer) outputAnswer() {
-
-}
-
-//check if sodoku table passes(confirms with the rules)
-func (inst *Solutionizer) passesTable() {
+func (inst *Solutionizer) OutputAnswer(board *sodoku.Board) {
+	for _, row := range(board.Entries) {
+		for _, entry := range(row) {
+			if(entry==0) {
+				fmt.Print("_")
+			} else {
+				fmt.Print(entry)
+			}
+			fmt.Print(" ")
+		}
+		fmt.Println("")
+	}
 }

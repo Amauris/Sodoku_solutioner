@@ -9,8 +9,8 @@ import (
 
 func main() {
 	
-	inputTable := os.Args[1]
+	inputEntries := os.Args[1]
 
-	table := sodoku.GetPreDefinedTable(inputTable, 9)
-	solutions.GetSodokuAnswer(table)
+	board := sodoku.GetPreDefinedBoard(inputEntries, 9)
+	solutions.GetSodokuAnswer(board)
 }
