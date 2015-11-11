@@ -128,15 +128,14 @@ func (inst *Board) GetColumn(j int) []int {
 func (inst *Board) GetQuadrant(i, j int) []int {
 
 	quadrant := make([]int, inst.dimensions)
-	quadrantX := int(math.Floor(float64(i/3)))
-	quadrantY := int(math.Floor(float64(j/3)))
+	quadrantX := int(math.Floor(float64(i/3)))*3
+	quadrantY := int(math.Floor(float64(j/3)))*3
 
 	quadrantTemp := inst.Entries[quadrantX:quadrantX+3]
 	for i, v := range(quadrantTemp) {
 		tempSubRow := v[quadrantY:quadrantY+3]
-
 		for j, v2 := range(tempSubRow) {
-			quadrant[i+j] = v2
+			quadrant[(i*3)+j] = v2
 		}
 	}
 
@@ -168,6 +167,26 @@ func (inst *Board) getQuadrantFamily(i, j int) []int {
 	return []int{}
 }
 
-func (inst *Board) ValidBoard() {
 
+//make sure for every entry, its corresponding
+//family is unique
+func (inst *Board) IsBoardComplete() bool {
+
+	for i, row := range(inst.Entries) {
+		for j, _ := range(row) {
+			families := inst.GetFamilies(i, j)
+			for _, family := range(families) {
+				numsToCount := make(map[int]int, 9)
+				for _, value := range(family) {
+					if numsToCount[value]==0 {
+						numsToCount[value] = 1
+					} else {
+						return false
+					}
+				}
+			}
+		}
+	}
+
+	return true
 }

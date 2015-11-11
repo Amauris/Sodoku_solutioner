@@ -24,14 +24,16 @@ func GetSodokuAnswer(board *sodoku.Board) {
 	
 	try := 0
 	//fmt.Println(board.Entries)
-	for try<10 {
+	for try<20 {
 		solutionizer.GetIndexWithLeastPossibleChoices(board)
 		try += 1
 	}
+
+	
 	//fmt.Println(board.Entries)
 	//InsertBestOption(mostDensedFamily)
-
 	solutionizer.OutputAnswer(board)
+	fmt.Println(board.IsBoardComplete())
 	//fmt.Println(table.GetFamilies(1, 1))
 }
 
@@ -106,15 +108,20 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 //free options to choose from. For example 
 //if a particular row only has one blank
 //index then we know the number that goes in that index
-func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) {
+func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) bool {
 
 	min := -1
-	//minFamily := [][]int{}
+	var (
+		minI int
+		minJ int
+		minEntries []int
+	)
 
 	for i, row := range(board.Entries) {
 
 		for j, v := range(row) {
 
+			//fmt.Printf(" i %v j %v \n", i, j)
 			//if we dont have an empty entry then we continue since this
 			//entry is already filled
 			if(v!=0) {
@@ -131,22 +138,34 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 
 			numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
 			length := len(numAvailable)
-			
+			fmt.Println(families)
+			fmt.Println(numAvailable)
 			if(length<=0) {
-				continue
+				return false
 			} else if(length==1) {
-				fmt.Println(families)
-				fmt.Println(numAvailable)
+				
 				board.SetEntry(i, j, numAvailable[0])
 				///insert available number
 			} else if(min==-1 || len(numAvailable)<=min) {
 				min = len(numAvailable)
+				minI, minJ, minEntries = i, j, numAvailable
 				//minFamily = families
 			}
 		}
 	}
 
-	//fmt.Printf("%v %v\n", min, minFamily)
+	if min>-1 {
+		//fmt.Printf("%v %v %v \n", minI, minJ, minEntry)
+		for _, v := range(minEntries) {
+			board.SetEntry(minI, minJ, v)
+			if inst.GetIndexWithLeastPossibleChoices(board) {
+				break
+			}
+		}
+		
+	}
+
+	return true
 	//fmt.Println(board.Entries)
 }
 
