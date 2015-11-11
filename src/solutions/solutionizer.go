@@ -35,13 +35,6 @@ func GetSodokuAnswer(board *sodoku.Board) {
 	//fmt.Println(table.GetFamilies(1, 1))
 }
 
-func (inst *Solutionizer) Traverse() {
-}
-
-func (inst *Solutionizer) ParseInput() {
-
-}
-
 func (inst *Solutionizer) isNumberTaken(availableNumbers, nth int) bool {
 
 	//assumes nth start from 0

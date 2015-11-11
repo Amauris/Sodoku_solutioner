@@ -52,11 +52,13 @@ func createBoard(layout string, dimensions int) *Board {
 
 func (inst *Board) initBoard() {
 
-	board := make([][]int, inst.dimensions)
+	entries := make([][]int, inst.dimensions)
 
-        for i, _ := range(board) {
-                board[i] = make([]int, inst.dimensions)
-        }
+    for i, _ := range(entries) {
+            entries[i] = make([]int, inst.dimensions)
+    }
+
+    inst.Entries = entries
 }
 
 func (inst *Board) fillBoard() {
