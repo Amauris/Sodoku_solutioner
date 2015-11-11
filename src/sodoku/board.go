@@ -1,7 +1,7 @@
 package sodoku;
 
 import (
-	//"fmt"
+	"fmt"
 	"strings"
 	"strconv"
 	"math"
@@ -64,34 +64,52 @@ func (inst *Board) fillBoard() {
 	rows := strings.Split(inst.preDefinedLayout, "\n")
 	entries := make([][]int, inst.dimensions)
 
-    for i, _ := range(entries) {
+	i := 0
+    for _, row := range(rows) {
 
-		columns := strings.Split(rows[i], " ")
+    	row := strings.TrimSpace(row)
+
+    	if(len(row)<=0) {
+    		continue;
+    	}
+
+		columns := strings.Split(row, " ")
+		fmt.Println(columns)
 
 		if i>=inst.dimensions {
-			continue
+			break
 		}
 
 		entries[i] = make([]int, inst.dimensions)
+		j := 0
+		for _, entry := range(columns) {
 
-		for j, v := range(columns) {
+			entry = strings.TrimSpace(entry)
+
+			if(len(entry)<=0) {
+    			continue;
+    		}
 
 			if j>=inst.dimensions {
-        	                continue
-	                }
+				break
+			}
 
-			if v=="_" {
+			if entry=="_" {
 				entries[i][j] = 0
 			} else {
-				vInt, err := strconv.Atoi(v)
+				entryInt, err := strconv.Atoi(entry)
 
 				if err!=nil {
 					entries[i][j] = 0
 				} else {
-					entries[i][j] = vInt
+					entries[i][j] = entryInt
 				}
 			}
+
+			j += 1
 		}
+
+		i += 1
     }
 
 	inst.Entries = entries

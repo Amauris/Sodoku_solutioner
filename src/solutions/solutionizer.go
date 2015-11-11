@@ -21,12 +21,10 @@ type family struct {
 func GetSodokuAnswer(board *sodoku.Board) {
 
 	solutionizer := &Solutionizer{}
-	
-	try := 0
+	solutionizer.OutputAnswer(board)
 	//fmt.Println(board.Entries)
-	for try<20 {
+	for !board.IsBoardComplete() {
 		solutionizer.GetIndexWithLeastPossibleChoices(board)
-		try += 1
 	}
 
 	
@@ -138,8 +136,8 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 
 			numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
 			length := len(numAvailable)
-			fmt.Println(families)
-			fmt.Println(numAvailable)
+			//fmt.Println(families)
+			//fmt.Println(numAvailable)
 			if(length<=0) {
 				return false
 			} else if(length==1) {
