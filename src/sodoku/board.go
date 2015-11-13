@@ -1,7 +1,7 @@
 package sodoku;
 
 import (
-	"fmt"
+	//"fmt"
 	"strings"
 	"strconv"
 	"math"
@@ -76,7 +76,6 @@ func (inst *Board) fillBoard() {
     	}
 
 		columns := strings.Split(row, " ")
-		fmt.Println(columns)
 
 		if i>=inst.dimensions {
 			break
@@ -209,4 +208,23 @@ func (inst *Board) IsBoardComplete() bool {
 	}
 
 	return true
+}
+
+func (inst *Board) GetStringFormat() string {
+
+	boardString := ""
+
+	for _, row := range(inst.Entries) {
+		for _, entry := range(row) {
+			if entry==0 {
+				boardString += "_"
+			} else {
+				boardString += strconv.Itoa(entry)
+			}
+			boardString += " "
+		}
+		boardString += "\n" 
+	}
+
+	return boardString
 }

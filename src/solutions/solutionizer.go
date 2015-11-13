@@ -1,7 +1,7 @@
 package solutions;
 
 import (
-	"fmt"
+	//"fmt"
 	"math"
 	sodoku "sodoku"
 )
@@ -18,21 +18,13 @@ type family struct {
 
 //main entry function that calls the right
 //functions for gettnig sodoku answer
-func GetSodokuAnswer(board *sodoku.Board) {
+func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 
-	solutionizer := &Solutionizer{}
-	solutionizer.OutputAnswer(board)
-	//fmt.Println(board.Entries)
 	for !board.IsBoardComplete() {
-		solutionizer.GetIndexWithLeastPossibleChoices(board)
+		inst.SetIndexWithLeastPossibleChoices(board)
 	}
 
-	
-	//fmt.Println(board.Entries)
-	//InsertBestOption(mostDensedFamily)
-	solutionizer.OutputAnswer(board)
-	fmt.Println(board.IsBoardComplete())
-	//fmt.Println(table.GetFamilies(1, 1))
+	return board.GetStringFormat()
 }
 
 func (inst *Solutionizer) isNumberTaken(availableNumbers, nth int) bool {
@@ -52,7 +44,6 @@ func (inst *Solutionizer) isNumberTaken(availableNumbers, nth int) bool {
 	}
 
 	nthNumber := remainder/denominator
-	//fmt.Printf("%v %v **\n", nthNumber, nth)
 	
 	isTaken := (nth!=nthNumber)
 
@@ -81,10 +72,8 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 	//first get the maxinum nth number available
 	max := int(math.Log10(float64(availableNumbers))) + 1
 
-	//fmt.Printf("%v %v\n", availableNumbers, max)
-
 	for max > 0 {
-		//fmt.Printf("values are %v %v %v \n", availableNumbers, max, inst.isNumberTaken(availableNumbers, max))
+
 		if(!inst.isNumberTaken(availableNumbers, max)) {
 			possibilities = append(possibilities, max)
 		}
@@ -99,7 +88,7 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 //free options to choose from. For example 
 //if a particular row only has one blank
 //index then we know the number that goes in that index
-func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) bool {
+func (inst *Solutionizer) SetIndexWithLeastPossibleChoices(board *sodoku.Board) bool {
 
 	min := -1
 	var (
@@ -112,7 +101,6 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 
 		for j, v := range(row) {
 
-			//fmt.Printf(" i %v j %v \n", i, j)
 			//if we dont have an empty entry then we continue since this
 			//entry is already filled
 			if(v!=0) {
@@ -123,14 +111,12 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 			availableNumbers := 987654321
 
 			for _, family := range(families) {
-				//fmt.Println(family)
 				availableNumbers = inst.availableNumbers(availableNumbers, family)
 			}
 
 			numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
 			length := len(numAvailable)
-			//fmt.Println(families)
-			//fmt.Println(numAvailable)
+
 			if(length<=0) {
 				return false
 			} else if(length==1) {
@@ -146,10 +132,9 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 	}
 
 	if min>-1 {
-		//fmt.Printf("%v %v %v \n", minI, minJ, minEntry)
 		for _, v := range(minEntries) {
 			board.SetEntry(minI, minJ, v)
-			if inst.GetIndexWithLeastPossibleChoices(board) {
+			if inst.SetIndexWithLeastPossibleChoices(board) {
 				break
 			}
 		}
@@ -157,19 +142,4 @@ func (inst *Solutionizer) GetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 	}
 
 	return true
-	//fmt.Println(board.Entries)
-}
-
-func (inst *Solutionizer) OutputAnswer(board *sodoku.Board) {
-	for _, row := range(board.Entries) {
-		for _, entry := range(row) {
-			if(entry==0) {
-				fmt.Print("_")
-			} else {
-				fmt.Print(entry)
-			}
-			fmt.Print(" ")
-		}
-		fmt.Println("")
-	}
 }

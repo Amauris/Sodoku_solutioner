@@ -2,11 +2,12 @@ package sodoku;
 
 import (
 	"testing"
-	//"fmt"
 )
 
 //predefined variable used through script
 var (
+	DIMENSIONS int = 9
+
 	SIMPLE_TABLE_STRING string =  `1 _ 3 _ _ 6 _ 8 _
 		_ 5 _ _ 8 _ 1 2 _
 		7 _ 9 1 _ 3 _ 5 6
@@ -52,39 +53,7 @@ var (
 	}
 )
 
-func TestGetCleanBoard(t *testing.T) {
-
-	dimensions := 9
-	sodoku := GetCleanBoard(dimensions)
-	testArray := []int{0, 0, 0, 0, 0, 0, 0, 0, 0}
-
-	if len(sodoku.Entries) <= 0 {
-		t.Error("Expected ", testArray, " Got ", sodoku.Entries)
-	}
-
-	for _, row := range(sodoku.Entries) {
-		if !compareArray(testArray, row) {
-			t.Error("Expected ", testArray, " Got ", row)
-		}
-	}
-
-}
-
-func TestGetPreDefinedBoard(t *testing.T) {
-
-	dimensions := 9
-	sodoku := GetPreDefinedBoard(HARD_TABLE_STRING, dimensions)
-
-	if len(sodoku.Entries) <= 0 {
-		t.Error("Expected ", HARD_TABLE_ARRAY, " Got ", sodoku.Entries)
-	}
-
-	for i, row := range(sodoku.Entries) {
-		if !compareArray(HARD_TABLE_ARRAY[i], row) {
-			t.Error("Expected ", HARD_TABLE_ARRAY[i], " Got ", row)
-		}
-	}
-}
+//Helper functions
 
 //return true if both array contani same values
 //else return false
@@ -103,15 +72,62 @@ func compareArray(array1, array2 []int) bool {
 	return true
 }
 
-func TestCreateBoard(t *testing.T) {
+func buildSodokuBoard() *Board {
+	
+	sodoku := GetPreDefinedBoard(HARD_TABLE_STRING, DIMENSIONS)
 
+	return sodoku
+}
+
+//End of helper functions
+
+func TestGetCleanBoard(t *testing.T) {
+
+	sodoku := GetCleanBoard(DIMENSIONS)
+	testArray := []int{0, 0, 0, 0, 0, 0, 0, 0, 0}
+
+	if len(sodoku.Entries) <= 0 {
+		t.Error("Expected ", testArray, " Got ", sodoku.Entries)
+	}
+
+	for _, row := range(sodoku.Entries) {
+		if !compareArray(testArray, row) {
+			t.Error("Expected ", testArray, " Got ", row)
+		}
+	}
+
+}
+
+func TestGetPreDefinedBoard(t *testing.T) {
+
+	sodoku := GetPreDefinedBoard(HARD_TABLE_STRING, DIMENSIONS)
+
+	if len(sodoku.Entries) <= 0 {
+		t.Error("Expected ", HARD_TABLE_ARRAY, " Got ", sodoku.Entries)
+	}
+
+	for i, row := range(sodoku.Entries) {
+		if !compareArray(HARD_TABLE_ARRAY[i], row) {
+			t.Error("Expected ", HARD_TABLE_ARRAY[i], " Got ", row)
+		}
+	}
 }
 
 func TestInitBoard(t *testing.T) {
 
-}
+	sodoku := buildSodokuBoard()
 
-func TestFillBoard(t *testing.T) {
+	//if rows is not equal to dimensions
+	if len(sodoku.Entries)!=DIMENSIONS {
+		t.Error("Length should be ", DIMENSIONS)
+	}
+
+	for _, row := range(sodoku.Entries) {
+		//if rows is not equal to dimensions
+		if len(row)!=DIMENSIONS {
+			t.Error("Length of row should be ", DIMENSIONS)
+		}
+	}
 }
 
 //traverse through all family(rows, columns, and quadrants)
@@ -124,6 +140,14 @@ func TestSetFamilyCache(t *testing.T) {
 
 func TestGetRow(t *testing.T) {
 
+	sodoku := buildSodokuBoard()
+
+	for i, _ := range(sodoku.Entries) {
+		row := sodoku.GetRow(i)
+		if !compareArray(HARD_TABLE_ARRAY[i], row) {
+			t.Error("Expected ", HARD_TABLE_ARRAY[i], " Got ", row)
+		}
+	}
 }
 
 func TestSetEntry(t *testing.T) {
@@ -132,16 +156,30 @@ func TestSetEntry(t *testing.T) {
 
 func TestGetColumn(t *testing.T) {
 
+	sodoku := buildSodokuBoard()
+	column := sodoku.GetColumn(0)
+
+	for i, v := range(column) {
+		if v!=HARD_TABLE_ARRAY[i][0] {
+			t.Error("Expected ", HARD_TABLE_ARRAY[i][0], " Got ", v)
+		}
+	}
 }
 
 func TestGetQuadrant(t *testing.T) {
 
-}
+	sodoku := buildSodokuBoard()
+	quadrant := sodoku.GetQuadrant(0, 0)
 
-//map i, j to hash so you can retrieve
-//from appropriate rowFamilyCache index
-func TestGetFamilies(t *testing.T) {
+	i := 0
+	for i<=2 {
+		row := quadrant[(i*3):(i*3)+2]
+		if !compareArray(HARD_TABLE_ARRAY[i][0:2], row) {
+			t.Error("Expected ", HARD_TABLE_ARRAY[i][0:2], " Got ", row)
+		}
 
+		i += 1
+	}
 }
 
 //map i, j to hash so you can retrieve
@@ -161,4 +199,5 @@ func TestgetQuadrantFamily(t *testing.T) {
 //family is unique
 func TestIsBoardComplete(t *testing.T) {
 
+	
 }
