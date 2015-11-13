@@ -23,7 +23,8 @@ func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 //retrieves the family with the least
 //free options to choose from. For example 
 //if a particular row only has one blank
-//index then we know the number that goes in that index
+//index then we know we can fill that entry
+//with 100% certainty(the unused number will go there)
 func (inst *Solutionizer) SetIndexWithLeastPossibleChoices(board *sodoku.Board) bool {
 
 	min := -1
@@ -33,37 +34,38 @@ func (inst *Solutionizer) SetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 		minEntries []int
 	)
 
-	for i, row := range(board.Entries) {
+	//make sure we reset the current cursor
+	board.ResetCursor()
 
-		for j, v := range(row) {
+	i, j, v := 0, 0, 0
+	for  i!=-1 {
+		
+		i, j, v = board.GetNextEntry()
+		
+		if(v!=0) {
+			continue
+		}
 
-			//if we dont have an empty entry then we continue since this
-			//entry is already filled
-			if(v!=0) {
-				continue
-			}
+		families := board.GetFamilies(i, j)
+		availableNumbers := 987654321
 
-			families := board.GetFamilies(i, j)
-			availableNumbers := 987654321
+		for _, family := range(families) {
+			availableNumbers = inst.availableNumbers(availableNumbers, family)
+		}
 
-			for _, family := range(families) {
-				availableNumbers = inst.availableNumbers(availableNumbers, family)
-			}
+		numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
+		length := len(numAvailable)
 
-			numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
-			length := len(numAvailable)
-
-			if(length<=0) {
-				return false
-			} else if(length==1) {
-				
-				board.SetEntry(i, j, numAvailable[0])
-				///insert available number
-			} else if(min==-1 || len(numAvailable)<=min) {
-				min = len(numAvailable)
-				minI, minJ, minEntries = i, j, numAvailable
-				//minFamily = families
-			}
+		if(length<=0) {
+			return false
+		} else if(length==1) {
+			
+			board.SetEntry(i, j, numAvailable[0])
+			///insert available number
+		} else if(min==-1 || len(numAvailable)<=min) {
+			min = len(numAvailable)
+			minI, minJ, minEntries = i, j, numAvailable
+			//minFamily = families
 		}
 	}
 

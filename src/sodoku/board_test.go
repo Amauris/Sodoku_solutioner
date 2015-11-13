@@ -130,6 +130,24 @@ func TestInitBoard(t *testing.T) {
 	}
 }
 
+func TestGetNextEntry(t *testing.T) {
+
+	sodoku := buildSodokuBoard()
+
+	for _, row := range(HARD_TABLE_ARRAY) {
+
+		for _, entry := range(row) {
+
+			_, _, v := sodoku.GetNextEntry()
+
+			if v != entry {
+				t.Error("Expected entry ", entry, " got ", v)
+			}
+		}
+	}
+
+}
+
 //traverse through all family(rows, columns, and quadrants)
 //and insert to private family type cache
 func TestSetFamilyCache(t *testing.T) {
@@ -199,5 +217,5 @@ func TestgetQuadrantFamily(t *testing.T) {
 //family is unique
 func TestIsBoardComplete(t *testing.T) {
 
-	
+
 }

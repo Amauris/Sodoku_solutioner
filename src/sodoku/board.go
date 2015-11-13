@@ -8,6 +8,7 @@ import (
 )
 
 type Board struct {
+	cursor int
 	Entries [][]int
 	preDefinedLayout string
 	dimensions int
@@ -45,7 +46,7 @@ func GetPreDefinedBoard(layout string, dimensions int) *Board {
 
 func createBoard(layout string, dimensions int) *Board {
 
-	newBoard := &Board{[][]int{}, layout, dimensions, make(map[string][]int), make(map[string][]int), make(map[string][]int)}
+	newBoard := &Board{1, [][]int{}, layout, dimensions, make(map[string][]int), make(map[string][]int), make(map[string][]int)}
 
 	return newBoard
 }
@@ -59,6 +60,36 @@ func (inst *Board) initBoard() {
     }
 
     inst.Entries = entries
+}
+
+//returns the current cursor position
+//as well as the entry value
+func (inst *Board) GetNextEntry() (i, j, v int) {
+
+	if inst.cursor>(inst.dimensions*inst.dimensions) {
+
+		return -1, -1, -1
+	}
+
+	i = int((inst.cursor-1)/inst.dimensions)
+	j = (inst.cursor-1)%inst.dimensions
+	v = inst.Entries[i][j]
+
+	inst.cursor += 1
+
+	return i, j, v
+}
+
+func (inst *Board) ResetCursor() {
+
+	inst.cursor = 1
+}
+
+func (inst *Board) SetCursor(i, j int) {
+
+	j += 1
+
+	inst.cursor = (i*inst.dimensions) + j
 }
 
 func (inst *Board) fillBoard() {
