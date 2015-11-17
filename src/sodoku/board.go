@@ -12,9 +12,9 @@ type Board struct {
 	Entries [][]int
 	preDefinedLayout string
 	dimensions int
-	rowFamilyCache map[string][]int
-	columnFamilyCache map[string][]int
-	quadrantFamilyCache map[string][]int
+	rowFamilyCache map[int][]int
+	columnFamilyCache map[int][]int
+	quadrantFamilyCache map[int][]int
 }
 
 func GetCleanBoard(dimensions int) *Board {
@@ -22,9 +22,10 @@ func GetCleanBoard(dimensions int) *Board {
 	newSodokuBoard := createBoard("", dimensions)
 	//instantiate board
 	newSodokuBoard.initBoard()
+	
 	//cache that makes it easy for 
 	//accessing rows, columns, quadrants
-	//newSodoku.setFamilyCache()
+	//newSodokuBoard.SetFamilyCache()
 
 	return newSodokuBoard
 }
@@ -37,16 +38,17 @@ func GetPreDefinedBoard(layout string, dimensions int) *Board {
 	newPreDefinedSodokuBoard.initBoard()
 	//fill board with the right values
 	newPreDefinedSodokuBoard.fillBoard()
+	
 	//cache that makes it easy for 
 	//accessing rows, columns, quadrants
-	//newSodoku.setFamilyCache()
+	//newPreDefinedSodokuBoard.SetFamilyCache()
 
     return newPreDefinedSodokuBoard
 }
 
 func createBoard(layout string, dimensions int) *Board {
 
-	newBoard := &Board{1, [][]int{}, layout, dimensions, make(map[string][]int), make(map[string][]int), make(map[string][]int)}
+	newBoard := &Board{1, [][]int{}, layout, dimensions, make(map[int][]int, dimensions), make(map[int][]int, dimensions), make(map[int][]int, dimensions)}
 
 	return newBoard
 }
@@ -149,19 +151,72 @@ func (inst *Board) fillBoard() {
 
 //traverse through all family(rows, columns, and quadrants)
 //and insert to private family type cache
-func (inst *Board) setFamilyCache(i, j int) {
+func (inst *Board) SetFamilyCache() {
 
 	//set columns cache
+	//theres n(count of dimensinos) of columns
+	for i, row := range(inst.Entries) {
+
+		column := make([]int, inst.dimensions)
+		for j, _ := range(row) {
+			column[j] = inst.Entries[j][i]
+
+			//set quadrant family
+			quadrantX, quadrantY := inst.getQuadrantIndex(i, j)
+			quadrantIndexHash := inst.getQuadrantIndexHash(quadrantX, quadrantY)
+			
+			if _, ok := inst.quadrantFamilyCache[quadrantIndexHash]; !ok {
+				inst.quadrantFamilyCache[quadrantIndexHash] = inst.GetQuadrant(i, j)
+			} 
+		}
+
+		inst.columnFamilyCache[i] = column
+		inst.rowFamilyCache[i] = row
+	}
 	//for every 
+}
+
+func (inst *Board) SetEntry(i, j, value int) {
+
+	//make sure to update cache values also
+
+	/*
+	//update row cache
+	inst.rowFamilyCache[i][j] = value
+
+	//update column cache
+	inst.columnFamilyCache[j][i] = value
+
+	//update quadrant cache
+	x, y := inst.getQuadrantIndex(i, j)
+	hash := inst.getQuadrantIndexHash(x, y)
+	quadrant := inst.quadrantFamilyCache[hash]
+
+	quadrant[(i%3)*3 + j%3] = value
+	//fmt.Println(inst.columnFamilyCache)
+	*/
+	
+	inst.Entries[i][j] = value	
+}
+
+func (inst *Board) getQuadrantIndexHash(i, j int) int {
+
+	return i + j*10
+
+}
+
+func (inst *Board) getQuadrantIndex(i, j int) (int, int) {
+
+	quadrantX := int(math.Floor(float64(i/3)))*3
+	quadrantY := int(math.Floor(float64(j/3)))*3
+
+	return quadrantX, quadrantY
 }
 
 func (inst *Board) GetRow(i int) []int {
 	return inst.Entries[i]
 }
 
-func (inst *Board) SetEntry(i, j, value int) {
-	inst.Entries[i][j] = value
-}
 
 func (inst *Board) GetColumn(j int) []int {
 
@@ -178,9 +233,9 @@ func (inst *Board) GetColumn(j int) []int {
 func (inst *Board) GetQuadrant(i, j int) []int {
 
 	quadrant := make([]int, inst.dimensions)
-	quadrantX := int(math.Floor(float64(i/3)))*3
-	quadrantY := int(math.Floor(float64(j/3)))*3
 
+	quadrantX, quadrantY := inst.getQuadrantIndex(i, j)
+	
 	quadrantTemp := inst.Entries[quadrantX:quadrantX+3]
 	for i, v := range(quadrantTemp) {
 		tempSubRow := v[quadrantY:quadrantY+3]
@@ -192,31 +247,42 @@ func (inst *Board) GetQuadrant(i, j int) []int {
 	return quadrant
 }
 
+/*
+func (inst *Board) GetRowCache(i int) []int {
+	
+	return inst.rowFamilyCache[i]
+}
+
+
+func (inst *Board) GetColumnCache(j int) []int {
+
+	return inst.columnFamilyCache[j]
+}
+
+func (inst *Board) GetQuadrantCache(i, j int) []int {
+
+	quadrantX, quadrantY := inst.getQuadrantIndex(i, j)
+	quadrantIndexHash := inst.getQuadrantIndexHash(quadrantX, quadrantY)
+
+	return inst.quadrantFamilyCache[quadrantIndexHash]
+}
+*/
+
 //map i, j to hash so you can retrieve
 //from appropriate rowFamilyCache index
 func (inst *Board) GetFamilies(i, j int) [][]int {
 
+	/*rowFamily := inst.GetRowCache(i)
+	columnFamily := inst.GetColumnCache(j)
+	quadrantFamily := inst.GetQuadrantCache(i, j)*/
+
+	
 	rowFamily := inst.GetRow(i)
 	columnFamily := inst.GetColumn(j)
 	quadrantFamily := inst.GetQuadrant(i, j)
 
 	return [][]int{rowFamily, columnFamily, quadrantFamily}
 }
-
-//map i, j to hash so you can retrieve
-//from appropriate columnFamilyCache index
-func (inst *Board) getColumnFamily(i, j int) []int {
-
-	return []int{}
-}
-
-//map i, j to hash so you can retrieve
-//from appropriate quadrantFamilyCache index
-func (inst *Board) getQuadrantFamily(i, j int) []int {
-
-	return []int{}
-}
-
 
 //make sure for every entry, its corresponding
 //family is unique

@@ -59,10 +59,10 @@ func (inst *Solutionizer) SetIndexWithLeastPossibleChoices(board *sodoku.Board) 
 		if(length<=0) {
 			return false
 		} else if(length==1) {
-			
 			board.SetEntry(i, j, numAvailable[0])
 			///insert available number
 		} else if(min==-1 || len(numAvailable)<=min) {
+
 			min = len(numAvailable)
 			minI, minJ, minEntries = i, j, numAvailable
 			//minFamily = families
