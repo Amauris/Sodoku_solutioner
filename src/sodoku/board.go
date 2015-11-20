@@ -279,7 +279,7 @@ func (inst *Board) GetFamilies(i, j int) [][]int {
 	
 	rowFamily := inst.GetRow(i)
 	columnFamily := inst.GetColumn(j)
-	quadrantFamily := inst.GetQuadrant(i, j)
+	quadrantFamily := inst.GetQuadrant(i, j) 
 
 	return [][]int{rowFamily, columnFamily, quadrantFamily}
 }
@@ -292,11 +292,13 @@ func (inst *Board) IsBoardComplete() bool {
 		for j, _ := range(row) {
 			families := inst.GetFamilies(i, j)
 			for _, family := range(families) {
-				numsToCount := make(map[int]int, 9)
+				numsToCount := make(map[int]int, inst.dimensions)
+
 				for _, value := range(family) {
 					if numsToCount[value]==0 {
 						numsToCount[value] = 1
 					} else {
+						//fmt.Println(numsToCount);
 						return false
 					}
 				}

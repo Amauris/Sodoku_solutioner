@@ -1,21 +1,30 @@
 package solutions;
 
 import (
-	//"fmt"
+	"fmt"
 	"math"
 	sodoku "sodoku"
 )
 
 type Solutionizer struct {
+	attempts int
+}
+
+type oppertunity struct {
+	I int
+	J int
+	Entries []int
 }
 
 //main entry function that calls the right
 //functions for gettnig sodoku answer
 func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 
-	for !board.IsBoardComplete() {
-		inst.SetIndexWithLeastPossibleChoices(board)
-	}
+	inst.attempts = 0;
+
+	inst.SetIndexWithLeastPossibleChoices(board)
+
+	fmt.Println(board.GetStringFormat())
 
 	return board.GetStringFormat()
 }
@@ -27,59 +36,90 @@ func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 //with 100% certainty(the unused number will go there)
 func (inst *Solutionizer) SetIndexWithLeastPossibleChoices(board *sodoku.Board) bool {
 
-	min := -1
-	var (
-		minI int
-		minJ int
-		minEntries []int
-	)
+	for !board.IsBoardComplete() {
 
-	//make sure we reset the current cursor
-	board.ResetCursor()
+		min := -1
+		oppertunities := [9][]oppertunity{}
 
-	i, j, v := 0, 0, 0
-	for  i!=-1 {
-		
-		i, j, v = board.GetNextEntry()
-		
-		if(v!=0) {
-			continue
-		}
+		//make sure we reset the current cursor
+		board.ResetCursor()
 
-		families := board.GetFamilies(i, j)
-		availableNumbers := 987654321
+		//fmt.Println(board.Entries)
+		i, j, v := 0, 0, 0
+		oppertunityFound := false
+		for  i!=-1 {
+			
+			i, j, v = board.GetNextEntry()
 
-		for _, family := range(families) {
-			availableNumbers = inst.availableNumbers(availableNumbers, family)
-		}
+			if(v!=0) {
+				continue
+			}
 
-		numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
-		length := len(numAvailable)
+			families := board.GetFamilies(i, j)
+			availableNumbers := 987654321
 
-		if(length<=0) {
-			return false
-		} else if(length==1) {
-			board.SetEntry(i, j, numAvailable[0])
-			///insert available number
-		} else if(min==-1 || len(numAvailable)<=min) {
-
-			min = len(numAvailable)
-			minI, minJ, minEntries = i, j, numAvailable
-			//minFamily = families
-		}
-	}
-
-	if min>-1 {
-		for _, v := range(minEntries) {
-			board.SetEntry(minI, minJ, v)
-			if inst.SetIndexWithLeastPossibleChoices(board) {
-				break
+			for _, family := range(families) {
+				availableNumbers = inst.availableNumbers(availableNumbers, family)
+			}
+			
+			numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
+			length := len(numAvailable)
+			//fmt.Println(numAvailable)
+			if(length<=0) {
+				return false
+			//if we only have one choice to choose from then we know 100% we can set it
+			} else if(length==1) {
+				oppertunityFound = true
+				board.SetEntry(i, j, numAvailable[0])
+				///insert available number
+			//
+			} else if(min==-1 || len(numAvailable)<=min) {
+				oppertunityFound = true
+				min = len(numAvailable)
+				oppertunities[min] = append(oppertunities[min], oppertunity{i, j, numAvailable})
+				//minFamily = families
 			}
 		}
+
+		if oppertunityFound==false {
+			return false
+		}
+
+		if min>-1 {
+			for _, ops := range(oppertunities) {
+				for _, op := range(ops) {
+
+					if len(op.Entries)<=0 {
+						continue
+					}
+
+					for _, v := range(op.Entries) {
+						board.SetEntry(op.I, op.J, v)
+						
+						if inst.SetIndexWithLeastPossibleChoices(board) {
+							break
+						} else {
+							board.SetEntry(op.I, op.J, 0)
+						}
+					}
+				}
+				
+			}
+			/**/
+
+			return false
+		}
 		
+		inst.attempts += 1
 	}
 
 	return true
+}
+
+func (inst *Solutionizer) Difficulty() int {
+
+
+	return inst.attempts
 }
 
 //retrieved numbders from availableNumbers and converts into array of numbers
