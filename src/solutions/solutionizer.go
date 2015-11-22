@@ -1,7 +1,7 @@
 package solutions;
 
 import (
-	"fmt"
+	//"fmt"
 	"math"
 	sodoku "sodoku"
 )
@@ -22,9 +22,7 @@ func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 
 	inst.attempts = 0;
 
-	inst.SetIndexWithLeastPossibleChoices(board)
-
-	fmt.Println(board.GetStringFormat())
+	inst.SetIndicesWithLeastPossibleChoices(board)
 
 	return board.GetStringFormat()
 }
@@ -32,88 +30,148 @@ func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 //retrieves the family with the least
 //free options to choose from. For example 
 //if a particular row only has one blank
-//index then we know we can fill that entry
+//indices then we know we can fill that entry
 //with 100% certainty(the unused number will go there)
-func (inst *Solutionizer) SetIndexWithLeastPossibleChoices(board *sodoku.Board) bool {
+func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board) bool {
 
-	for !board.IsBoardComplete() {
+	toBeFilled := board.GetEmptyIndices()
+	
+	if len(toBeFilled)<=0 && board.IsBoardComplete() {
+		return true
+	}
 
-		min := -1
-		oppertunities := [9][]oppertunity{}
+	oppertunityFound := false
+	oppertunities := [9][]oppertunity{}
+	boardChange := false
 
-		//make sure we reset the current cursor
-		board.ResetCursor()
+	for  _, v := range(toBeFilled) {
+		
+		i, j := v[0], v[1]
 
-		//fmt.Println(board.Entries)
-		i, j, v := 0, 0, 0
-		oppertunityFound := false
-		for  i!=-1 {
-			
-			i, j, v = board.GetNextEntry()
-
-			if(v!=0) {
-				continue
-			}
-
-			families := board.GetFamilies(i, j)
-			availableNumbers := 987654321
-
-			for _, family := range(families) {
-				availableNumbers = inst.availableNumbers(availableNumbers, family)
-			}
-			
-			numAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
-			length := len(numAvailable)
-			//fmt.Println(numAvailable)
-			if(length<=0) {
-				return false
-			//if we only have one choice to choose from then we know 100% we can set it
-			} else if(length==1) {
-				oppertunityFound = true
-				board.SetEntry(i, j, numAvailable[0])
-				///insert available number
-			//
-			} else if(min==-1 || len(numAvailable)<=min) {
-				oppertunityFound = true
-				min = len(numAvailable)
-				oppertunities[min] = append(oppertunities[min], oppertunity{i, j, numAvailable})
-				//minFamily = families
-			}
-		}
-
-		if oppertunityFound==false {
+		numAvailable := inst.getPossibilities(i, j, board)
+		length := len(numAvailable)
+		//fmt.Println(i, j, numAvailable)
+		//if no oppertunities or certainties were found then
+		//we are dealing with a faulty/broken board
+		if(length<=0) {
 			return false
+		//if we only have one choice to choose from then we know 100% we can set it
+		} else if(length==1) {
+			//set indices for relatives
+			board.SetEntry(i, j, numAvailable[0])
+			boardChange = true
+			//now that we have filled index at i,j
+			//that means relatives were affected
+			//and their might be new relatives we can fill with certainty
+			//toBeFilledRelatives := board.GetFamilyEmptyIndices(i, j)
+			//inst.SetIndicesWithCertainty(toBeFilledRelatives, board)
+
+			//recall board recusrion
+			//return inst.SetIndicesWithLeastPossibleChoices(board)
+		//other wise we track available oppurtunities thats ordered
+		//based on amount of numbers available
+		} else {
+			oppertunityFound = true
+			oppertunities[length] = append(oppertunities[length], oppertunity{i, j, numAvailable})
 		}
+	}
 
-		if min>-1 {
-			for _, ops := range(oppertunities) {
-				for _, op := range(ops) {
+	//if board was changed we call recursion on updated board
+	if boardChange {
+		return inst.SetIndicesWithLeastPossibleChoices(board)
+	//else if at least one oppurtunity was found
+	//we insert oppurtunity and recompute recursion
+	} else if oppertunityFound {
 
-					if len(op.Entries)<=0 {
-						continue
-					}
+		//make copy of current entries before any alterations
+		origEntry := inst.copy(board.Entries)
+		for _, ops := range(oppertunities) {
 
-					for _, v := range(op.Entries) {
-						board.SetEntry(op.I, op.J, v)
-						
-						if inst.SetIndexWithLeastPossibleChoices(board) {
-							break
-						} else {
-							board.SetEntry(op.I, op.J, 0)
-						}
+			for _, op := range(ops) {
+
+				if len(op.Entries)<=0 {
+					continue
+				}
+
+				for _, v := range(op.Entries) {
+					
+					board.SetEntry(op.I, op.J, v)
+					//fmt.Printf("Trying %v %v %v\n", op.I, op.J, v)
+					pass := inst.SetIndicesWithLeastPossibleChoices(board)
+					//if recursion returns true
+					if pass {
+						//fmt.Println(board.Entries)
+						return true
+					//otherwise if this oppertunity wasnt the best choice
+					//we set it back to 0 and try next oppertunity
+					} else {
+						board.SetEntries(origEntry)
 					}
 				}
 				
 			}
-			/**/
-
-			return false
+			
 		}
-		
-		inst.attempts += 1
 	}
 
-	return true
+	inst.attempts += 1
+
+	return false
+}
+
+func (inst *Solutionizer) copy(values [][]int) [][]int {
+
+	a := make([][]int, 9)
+
+	// manual deep copy
+	for i := range(values) {
+	    a[i] = make([]int, len(values[i]))
+	    copy(a[i], values[i])
+	}
+	return a
+}
+
+//fills the board with answers it can get 100% right
+//in other words where possible entries for emptyt(0) indices is equal 1
+func (inst *Solutionizer) SetIndicesWithCertainty(indices [][]int, board *sodoku.Board) {
+
+	for _, index := range(indices) {
+
+		i, j := index[0], index[1]
+
+		numAvailable := inst.getPossibilities(i, j, board)
+		
+		length := len(numAvailable)
+
+		if(length==1) {
+				
+			board.SetEntry(i, j, numAvailable[0])
+
+			//set indices for relatives
+			toBeFilledRelatives := board.GetFamilyEmptyIndices(i, j)
+			inst.SetIndicesWithCertainty(toBeFilledRelatives, board)	
+		}
+	}
+
+	return
+}
+
+func (inst *Solutionizer) getPossibilities(i, j int, board *sodoku.Board) []int {
+
+	families := board.GetFamilies(i, j)
+	availableNumbers := 987654321
+
+	for _, family := range(families) {
+		availableNumbers = inst.availableNumbers(availableNumbers, family)
+	}
+		
+	//fmt.Println(board.GetStringFormat())
+	//fmt.Println(families)
+	numsAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
+	
+	//fmt.Printf("%v %v %v \n", i, j, numsAvailable)
+
+	return numsAvailable
 }
 
 func (inst *Solutionizer) Difficulty() int {

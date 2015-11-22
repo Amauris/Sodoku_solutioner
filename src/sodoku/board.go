@@ -82,6 +82,18 @@ func (inst *Board) GetNextEntry() (i, j, v int) {
 	return i, j, v
 }
 
+//returns the current cursor position
+//as well as the entry value
+func (inst *Board) HasNextEntry() bool {
+
+	if inst.cursor>(inst.dimensions*inst.dimensions) {
+
+		return false
+	}
+
+	return true
+}
+
 func (inst *Board) ResetCursor() {
 
 	inst.cursor = 1
@@ -174,6 +186,12 @@ func (inst *Board) SetFamilyCache() {
 		inst.rowFamilyCache[i] = row
 	}
 	//for every 
+}
+
+//Gets all empty indices from the board
+func (inst *Board) SetEntries(newEntries [][]int) {
+
+	inst.Entries = newEntries
 }
 
 func (inst *Board) SetEntry(i, j, value int) {
@@ -307,6 +325,44 @@ func (inst *Board) IsBoardComplete() bool {
 	}
 
 	return true
+}
+
+//Gets indices that need to be filled(with value 0)
+//along the families from related to the index 
+//i, j
+func (inst *Board) GetFamilyEmptyIndices(i, j int) [][]int {
+
+	emptyIndices := [][]int{}
+
+	for inst.HasNextEntry() {
+		i, j, v := inst.GetNextEntry()
+
+		if v==0 {
+			emptyIndices = append(emptyIndices, []int{i, j})
+		}
+	}
+
+	inst.ResetCursor()
+
+	return emptyIndices
+}
+
+//Gets all empty indices from the board
+func (inst *Board) GetEmptyIndices() [][]int {
+
+	emptyIndices := [][]int{}
+
+	for inst.HasNextEntry() {
+		i, j, v := inst.GetNextEntry()
+
+		if v==0 {
+			emptyIndices = append(emptyIndices, []int{i, j})
+		}
+	}
+
+	inst.ResetCursor()
+
+	return emptyIndices
 }
 
 func (inst *Board) GetStringFormat() string {

@@ -3,7 +3,7 @@
 //stress tester. Retrieved table from websodoku, parses it and passes it 
 //into my own sodoku solver
 
-$inputTable = getSodokuTable(2);
+$inputTable = getSodokuTable(4);
 
 echo "running with the following input\n".$inputTable." \n";
 $output = shell_exec("cd /Users/amauris/workspace/go/sodoku_solutioner; go run main.go \"".$inputTable."\"");

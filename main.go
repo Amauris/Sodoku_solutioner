@@ -19,9 +19,11 @@ func main() {
 		board := sodoku.GetPreDefinedBoard(inputEntries, 9)
 
 		solutionizer.GetSodokuAnswer(board)
-		 fmt.Printf("%v difficulty\n", solutionizer.Difficulty())
+		fmt.Println(board.GetStringFormat())
+		fmt.Printf("Succesfully completed board %v\n", board.IsBoardComplete())
+		fmt.Printf("%v difficulty\n", solutionizer.Difficulty())
 	//}
-	
+
     elapsed := time.Since(start)
     fmt.Println("Solutionizer took %s", elapsed)
 }
