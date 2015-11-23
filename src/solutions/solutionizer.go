@@ -7,7 +7,7 @@ import (
 )
 
 type Solutionizer struct {
-	attempts int
+	possibilities int
 }
 
 type oppertunity struct {
@@ -17,12 +17,17 @@ type oppertunity struct {
 }
 
 //main entry function that calls the right
-//functions for gettnig sodoku answer
-func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
+//functions for getting sodoku answer
+func (inst *Solutionizer) GetSodokuSolution(board *sodoku.Board) string {
 
-	inst.attempts = 0;
+	inst.possibilities = 0;
 
-	inst.SetIndicesWithLeastPossibleChoices(board)
+	pass := inst.SetIndicesWithLeastPossibleChoices(board)
+
+	if !pass {
+		panic("Can't be solved!")
+		return ""
+	}
 
 	return board.GetStringFormat()
 }
@@ -32,6 +37,7 @@ func (inst *Solutionizer) GetSodokuAnswer(board *sodoku.Board) string {
 //if a particular row only has one blank
 //indices then we know we can fill that entry
 //with 100% certainty(the unused number will go there)
+//returns true if solution was found
 func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board) bool {
 
 	toBeFilled := board.GetEmptyIndices()
@@ -50,7 +56,7 @@ func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board
 
 		numAvailable := inst.getPossibilities(i, j, board)
 		length := len(numAvailable)
-		//fmt.Println(i, j, numAvailable)
+		
 		//if no oppertunities or certainties were found then
 		//we are dealing with a faulty/broken board
 		if(length<=0) {
@@ -60,14 +66,6 @@ func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board
 			//set indices for relatives
 			board.SetEntry(i, j, numAvailable[0])
 			boardChange = true
-			//now that we have filled index at i,j
-			//that means relatives were affected
-			//and their might be new relatives we can fill with certainty
-			//toBeFilledRelatives := board.GetFamilyEmptyIndices(i, j)
-			//inst.SetIndicesWithCertainty(toBeFilledRelatives, board)
-
-			//recall board recusrion
-			//return inst.SetIndicesWithLeastPossibleChoices(board)
 		//other wise we track available oppurtunities thats ordered
 		//based on amount of numbers available
 		} else {
@@ -81,10 +79,15 @@ func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board
 		return inst.SetIndicesWithLeastPossibleChoices(board)
 	//else if at least one oppurtunity was found
 	//we insert oppurtunity and recompute recursion
+	//notice how oppertunities are traverse based on order
+	//of minimum possibilities. This gives it a much higher chance
+	//of success
 	} else if oppertunityFound {
 
 		//make copy of current entries before any alterations
-		origEntry := inst.copy(board.Entries)
+		originalEntry := inst.copy(board.Entries)
+		inst.possibilities += 1
+
 		for _, ops := range(oppertunities) {
 
 			for _, op := range(ops) {
@@ -94,18 +97,15 @@ func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board
 				}
 
 				for _, v := range(op.Entries) {
-					
 					board.SetEntry(op.I, op.J, v)
-					//fmt.Printf("Trying %v %v %v\n", op.I, op.J, v)
 					pass := inst.SetIndicesWithLeastPossibleChoices(board)
 					//if recursion returns true
 					if pass {
-						//fmt.Println(board.Entries)
 						return true
 					//otherwise if this oppertunity wasnt the best choice
 					//we set it back to 0 and try next oppertunity
 					} else {
-						board.SetEntries(origEntry)
+						board.SetEntries(originalEntry)
 					}
 				}
 				
@@ -114,11 +114,10 @@ func (inst *Solutionizer) SetIndicesWithLeastPossibleChoices(board *sodoku.Board
 		}
 	}
 
-	inst.attempts += 1
-
 	return false
 }
 
+//creates a copy of multideimensional array
 func (inst *Solutionizer) copy(values [][]int) [][]int {
 
 	a := make([][]int, 9)
@@ -131,31 +130,9 @@ func (inst *Solutionizer) copy(values [][]int) [][]int {
 	return a
 }
 
-//fills the board with answers it can get 100% right
-//in other words where possible entries for emptyt(0) indices is equal 1
-func (inst *Solutionizer) SetIndicesWithCertainty(indices [][]int, board *sodoku.Board) {
-
-	for _, index := range(indices) {
-
-		i, j := index[0], index[1]
-
-		numAvailable := inst.getPossibilities(i, j, board)
-		
-		length := len(numAvailable)
-
-		if(length==1) {
-				
-			board.SetEntry(i, j, numAvailable[0])
-
-			//set indices for relatives
-			toBeFilledRelatives := board.GetFamilyEmptyIndices(i, j)
-			inst.SetIndicesWithCertainty(toBeFilledRelatives, board)	
-		}
-	}
-
-	return
-}
-
+//for a particular empty index, returns the 
+//numbers available that can poltentially be
+//inserted in that index
 func (inst *Solutionizer) getPossibilities(i, j int, board *sodoku.Board) []int {
 
 	families := board.GetFamilies(i, j)
@@ -164,23 +141,32 @@ func (inst *Solutionizer) getPossibilities(i, j int, board *sodoku.Board) []int 
 	for _, family := range(families) {
 		availableNumbers = inst.availableNumbers(availableNumbers, family)
 	}
-		
-	//fmt.Println(board.GetStringFormat())
-	//fmt.Println(families)
+
 	numsAvailable := inst.getPossibilitiesFromAvailableNumbers(availableNumbers)
 	
-	//fmt.Printf("%v %v %v \n", i, j, numsAvailable)
-
 	return numsAvailable
 }
 
-func (inst *Solutionizer) Difficulty() int {
+//return a number in which 0's represent numbers taken. For, example, from 
+//080600320, the numbers 8, 6, 3, and 2 are available to take 
+func (inst *Solutionizer) availableNumbers(availableNumbers int, family []int) int {
 
+	for _, v := range(family) {
 
-	return inst.attempts
+		if(v==0 || inst.isNumberTaken(availableNumbers, v)) {
+			continue
+		}
+
+		reducer := v*int(math.Pow(10, float64(v-1)))
+		availableNumbers -= reducer
+	}
+
+	return availableNumbers
 }
 
-//retrieved numbders from availableNumbers and converts into array of numbers
+//based on 987654321 number format output from availableNumbers,
+//getPossibilitiesFromAvailableNumbers converts it to an array of numbers
+//for example 080600320, will return []int{8, 6, 3, 2}
 func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers int) []int {
 
 	possibilities := []int{}
@@ -199,21 +185,9 @@ func (inst *Solutionizer) getPossibilitiesFromAvailableNumbers(availableNumbers 
 	return possibilities
 }
 
-func (inst *Solutionizer) availableNumbers(availableNumbers int, family []int) int {
-
-	for _, v := range(family) {
-
-		if(v==0 || inst.isNumberTaken(availableNumbers, v)) {
-			continue
-		}
-
-		reducer := v*int(math.Pow(10, float64(v-1)))
-		availableNumbers -= reducer
-	}
-
-	return availableNumbers
-}
-
+//determines wether a number is present in the 987654321 number format.
+//for example isNumberTaken(080600320, 2) will return true because 2
+//is present
 func (inst *Solutionizer) isNumberTaken(availableNumbers, nth int) bool {
 
 	//assumes nth start from 0
@@ -235,4 +209,26 @@ func (inst *Solutionizer) isNumberTaken(availableNumbers, nth int) bool {
 	isTaken := (nth!=nthNumber)
 
 	return isTaken
+}
+
+//difficulty is corrolated to number of possibilities
+//found while solving the solution
+//the more possibilities, the less chances of success
+//you have at choosing the right possibility
+func (inst *Solutionizer) Difficulty() string {
+
+	difficulty := "Easy"
+
+	switch {
+		case inst.possibilities <= 0:
+		    break
+		case inst.possibilities <= 5:
+		    difficulty = "Medium"
+		case inst.possibilities <= 14:
+		    difficulty = "Hard"
+		case inst.possibilities > 14:
+		    difficulty = "Evil"
+	}
+
+	return difficulty
 }

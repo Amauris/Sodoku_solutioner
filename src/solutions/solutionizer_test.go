@@ -50,12 +50,12 @@ func compactString(input string) string {
 
 //main entry function that calls the right
 //functions for gettnig sodoku answer
-func TestGetSodokuAnswer(t *testing.T) {
+func TestGetSodokuSolution(t *testing.T) {
 
 	solutionizer := buildSolutionizer()
 	board := sodoku.GetPreDefinedBoard(TABLE, 9)
 	
-	computedAnswer := solutionizer.GetSodokuAnswer(board)
+	computedAnswer := solutionizer.GetSodokuSolution(board)
 
 	compactAnswer := compactString(computedAnswer)
 	compactCorrectAnswer := compactString(TABLE_ANSWER)
